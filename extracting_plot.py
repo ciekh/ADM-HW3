@@ -6,7 +6,7 @@ possibles = ['Plot','Synopsis','Plot_synopsis','Plot_summary',
              'Story','Plotline','The_Beginning','Summary',
             'Content','Premise']
 all_htmls=os.listdir("/home/computer/Downloads/test")
-h=0
+h=1
 for html_file in all_htmls:
 	try:
 		html=open("/home/computer/Downloads/test/"+html_file)
