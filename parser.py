@@ -1,94 +1,148 @@
-import os
+#libraries:
 from bs4 import BeautifulSoup
 import csv
-from parser_utils import SplitWord
-
-for i in range(29992):
-    with open(r'C:\Users\cecco\Desktop\AllMovies\article_'+str(i)+'.html' ,encoding ='utf8') as f:
+#for loop to crawl all the html file that we downloaded before
+for i in range(10):
+    with open(r'C:\Users\shekoufeh\movies3\article_'+str(i)+'.html' ,encoding ='utf8') as f:
         html = f.read()
-    lst2 = []
     soup = BeautifulSoup(html,'html.parser')
-    intro = ''
-    plot = ''
-    #check if the infobox vevent table exists if it does not exist
-    # #very probably it will not be a film so discard the file I think is a right tradeoff
-    table = soup.find('table', {'class': 'infobox vevent'})
-    if table == None:
-        continue
-    #I extract  all paragraph of into and plot
-    #I start to scroll through the paragraphs after the table because the html files are so structured
+    dict={}
+#title
+    title=(soup.select('.firstHeading'))[0].text
+    dict['title']=title.replace("\n"," ").strip() 
+
+#intro
+    
+    for items in soup.select(".toc"):
+        
+#the paragraphs before class="toc" are in the intro cluster. so we find and merge them as a intro
+        
+        intro = [item.text for item in items.find_previous_siblings() if item.name=="p"]
+#this method find the paragrapghs from end to top of the page. so we reverse them to be in the correct order
+    intro.reverse()
+    
+    intro="".join(intro)
+    dict['intro']=intro.replace("\n"," ").strip()   
+    
+#plot
+       
+    try:
+        plot = []
+
+# find the node with id of "Plot"
+        mark = soup.find(id="Plot")
+        
+# walk through the siblings of the parent (H2) node until we reach the next H2 node
+        for elt in mark.parent.nextSiblingGenerator():
+            if elt.name == "h2":
+                break
+            if hasattr(elt, "text"):
+                plot.append(elt.text)
+        
+# convert to text 
+        plot="".join(plot)
+    except:
+        plot=''
+    
+    finally:
+        dict['plot']=plot.replace("\n"," ").strip()
+    
+#extract infobox
+    table=(soup.select(".infobox"))[0]
+
+    output_rowc1 = []
+    output_rowc0 = []
+#gather each columns of infobox in a separate list 
+    for table_row in table.findAll('tr'):
+        rowc1 = table_row.findAll('td')
+        rowc0 = table_row.findAll('th')
+        
+        for row in rowc1:
+            output_rowc1.append(row.text)
+        for row in rowc0:
+            output_rowc0.append(row.text)
+
+#add information in infobox to dictionary
+            
+    #film_name
+    dict['film_name']=output_rowc0[0]
+
+##search information in the lists, if they were available, we add them to a dictionary, otherwise, we add "NA" to dictionary  
+    
+    #director
+    a = [output_rowc0.index(i) for i in output_rowc0 if "direct" in i.lower()]
+    if len(a)>0:
+        dict['director']=output_rowc1[a[0]].replace("\n","").strip() 
     else:
-        tag = table.find_next_sibling('p')
-        tag1 = ''
-        while tag.name == 'p':
-                    intro += tag.text
-                    tag = tag.find_next_sibling()
-        tag1 = tag.find_next_sibling('p')
-        if tag1 == None:
-            plot == 'NA'
-        else:
-            while tag1.name == 'p':
-                    plot += tag1.text
-                    tag1 = tag1.find_next_sibling()
-        d1 = {}
-        # I take the fields from the table
-        for rows in table.find_all('tr')[2:]:
-            if rows.th!= None:
-                if rows.th.text == 'Directed by':
-                    d1['Directed by'] = SplitWord(rows.td.text.replace("\n"," ").strip())
-                elif rows.th.text == 'Produced by':
-                    d1['Produced by'] = SplitWord(rows.td.text.replace("\n", " ").strip())
-                elif rows.th.text == 'Written by':
-                    d1['Written by'] = SplitWord(rows.td.text.replace("\n", " ").strip())
-                elif rows.th.text == 'Starring':
-                    d1['Starring'] = SplitWord(rows.td.text.replace("\n", " ").strip())
-                elif rows.th.text == 'Music by':
-                    d1['Music by'] = SplitWord(rows.td.text.replace("\n", " ").strip())
-                elif rows.th.text == 'Release date':
-                    d1['Release date'] = SplitWord(rows.td.text.replace("\n", " ").strip())
-                elif rows.th.text == 'Running time':
-                    d1['Running time'] = SplitWord(rows.td.text.replace("\n", " ").strip())
-                elif rows.th.text == 'Country':
-                    d1['Country'] = SplitWord(rows.td.text.replace("\n", " ").strip())
-                elif rows.th.text == 'Language':
-                    d1['Language'] = SplitWord(rows.td.text.replace("\n", " ").strip())
-                elif rows.th.text =='Budget':
-                    d1['Budget'] = SplitWord(rows.td.text.replace("\n", " ").strip())
-        d = {}
-        d['title'] = soup.title.text.replace("\n", " ").strip()
-        d['intro'] = intro.replace("\n", " ").strip()
-        d['plot'] = plot.replace("\n", " ").strip()
-        d['film_name'] = table.find('tr').text.replace("\n", " ").strip()
-        for x in list(d1):
-            if x == 'Directed by':
-                d['director'] = d1['Directed by']
-            elif x == 'Produced by':
-                d['producer'] = d1['Produced by']
-            elif x == 'Written by':
-                d['written'] = d1['Written by']
-            elif x == 'Starring':
-                d['starring'] = d1['Starring']
-            elif x == 'Music by':
-                d['music'] = d1['Music by']
-            elif x == 'Release date':
-                d['release date'] = d1['Release date']
-            elif x == 'Running time':
-                d['runtime'] = d1['Running time']
-            elif x == 'Country':
-                d['country'] = d1['Country']
-            elif x == 'Language':
-                d['language'] = d1['Language']
-            elif x == 'Budget':
-                d['budget'] = d1['Budget']
-        dtags = ['director', 'producer', 'written', 'starring', 'music', 'release date', 'runtime', 'country', 'language', 'budget']
-        for x in dtags:
-            if x not in list(d):
-                d[x] = 'NA'
-    os.chdir(r'C:\Users\cecco\Desktop\PagWeb')
-    # i create a file tsv
-    with open('article_'+str(i)+'.tsv','w',encoding='utf8') as f:
-        fieldnames = ['title','intro','plot','film_name','director', 'producer', 'written', 'starring', 'music', 'release date', 'runtime', 'country', 'language', 'budget']
+        dict['director']="NA"
+    
+    #producer
+    a = [output_rowc0.index(i) for i in output_rowc0 if "produce" in i.lower()]
+    if len(a)>0:
+        dict['producer']=output_rowc1[a[0]].replace("\n","").strip()  
+    else:
+        dict['producer']="NA"
+    
+    #writer
+    a = [output_rowc0.index(i) for i in output_rowc0 if "writ" in i.lower()]
+    if len(a)>0:
+        dict['writer']=output_rowc1[a[0]].replace("\n","").strip()
+    else:
+        dict['writer']="NA"
+    
+    #starring
+    a = [output_rowc0.index(i) for i in output_rowc0 if "star" in i.lower()]
+    if len(a)>0:
+        dict['starring']=output_rowc1[a[0]].replace("\n","").strip()
+    else:
+        dict['starring']="NA"
+    
+    #music
+    a = [output_rowc0.index(i) for i in output_rowc0 if "music" in i.lower()]
+    if len(a)>0:
+        dict['music']=output_rowc1[a[0]].replace("\n","").strip()
+    else:
+        dict['starring']="NA"
+    
+    #release date
+    a = [output_rowc0.index(i) for i in output_rowc0 if "release" in i.lower()]
+    if len(a)>0:
+        dict['release date']=output_rowc1[a[0]].replace("\n","").strip()
+    else:
+        dict['release date']="NA"
+    
+    #running time
+    a = [output_rowc0.index(i) for i in output_rowc0 if "run" in i.lower()]
+    if len(a)>0:
+        dict['running time']=output_rowc1[a[0]].replace("\n","").strip()
+    else:
+        dict['running time']="NA"
+    
+    #country
+    a = [output_rowc0.index(i) for i in output_rowc0 if "country" in i.lower()]
+    if len(a)>0:
+        dict['country']=output_rowc1[a[0]].replace("\n","").strip()
+    else:
+        dict['country']="NA"
+    
+    #language
+    b = [output_rowc0.index(i) for i in output_rowc0 if "language" in i.lower()]
+    if len(a)>0:
+        dict['language']=output_rowc1[a[0]].replace("\n","").strip()
+    else:
+        dict['language']="NA"
+    
+    #budget
+    a = [output_rowc0.index(i) for i in output_rowc0 if "budget" in i.lower()]
+    if len(a)>0:
+        dict['budget']=output_rowc1[a[0]].replace("\n","").strip()
+    else:
+        dict['budget']="NA"
+        
+#create tsv files
+        
+    with open('article_'+str(i)+'tsv','w',encoding='utf8') as f:
+        fieldnames = ['title','intro','plot','film_name','director', 'producer', 'writer', 'starring', 'music', 'release date', 'running time', 'country', 'language', 'budget']
         writer = csv.DictWriter(f, fieldnames=fieldnames,dialect="excel-tab")
         writer.writeheader()
-        writer.writerow(d)
-
+        writer.writerow(dict)
