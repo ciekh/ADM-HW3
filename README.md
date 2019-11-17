@@ -2,6 +2,7 @@
 We obtained the web pages to be analyzed using the links provided in the movies files
 
 # Script descriptions
+
 # collector.py
 this script gives us all the html pages on which we will then work
 # parses.py
