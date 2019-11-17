@@ -5,6 +5,8 @@ import pandas as pd
 from numpy import dot
 from numpy.linalg import norm
 from utils import CleanData
+import numpy as np
+
 os.chdir(r'C:\Users\cecco\Desktop\PagWeb')
 
 
@@ -39,11 +41,10 @@ def searchEngine_1(query):
                 z = d_url[doc]
                 df1 = pd.DataFrame({'link': z}, index=[0])
                 df = pd.read_csv(doc + ".tsv",delimiter="\t")
-                result1 =df[['title','intro','plot']]
-                result2 = pd.concat([result1,df1],axis = 1)
+                result2 = pd.concat([df,df1],axis = 1)
                 result = result.append(result2)
             result.reset_index(drop=True, inplace=True)
-            print(result)
+            return(result)
 
 
 
@@ -112,13 +113,69 @@ def searchEngine_2(query):
                 result = result.append(result2)
             result.reset_index(drop=True, inplace=True)
             print(result)
+            
+# The input of the function has to be the result from the step 2.1 that contains all the columns
+
+def searchEngine_3(df):# when we have the film name
+    
+    
+    w1=[0.8,0.1,0.05,0.05]
+    #when we don't have the film name
+    w2=[0.0,0.5,0.2,0.3]
+    # Requesting inputs from user.
+    Film_name=input("If you are looking for special movie enter the film name otherwise enter space:\n ")
+    Starring=input("If you are looking for actor enter the actor name otherwise enter space:\n ")
+    Director=input("If you are looking for special movie Director enter the Director name otherwise enter space:\n ")
+    language=input(" what is your preferred language:? \n ")
+    if language=='':
+        language='English'
+    for i in range(len(df)):
+        s=[0,0,0,0]
+        try:
+            if Film_name !='':
+                if df.loc[i,'film_name'].lower().find(Film_name.lower())!=-1:
+                    s[0]=1
+        except:
+            continue
+        try:
+            if Starring !='':
+                if df.loc[i,'starring'].lower().find(Starring.lower())!=-1:
+                    s[1]=1
+        except:
+            continue          
+        try:
+            if Director !='':
+                if df.loc[i,'director'].lower().find(Director.lower())!=-1:
+                    s[2]=1
+        except:
+            continue
+        try:
+            if language !='':
+                if df.loc[i,'language'].lower().find(language.lower())!=-1:
+                    s[3]=1
+        except:
+            continue
+        finally:
+            if Film_name =='':
+                DotProduct = np.dot(s,w2)
+                df.loc[i,'Score']=DotProduct
+            else:
+                DotProduct = np.dot(s,w1)
+                df.loc[i,'Score']=DotProduct
+    return(df)
 
 # I have the user choose which dimilarity to use and the query to insert
 n = input("Enter query number: ")
 if n== str(1):
     query = input("Please, write a query: ")
-    searchEngine_1(query)
+    df = searchEngine_1(query)
+    print(df[['title','intro','plot','link']])
 if n == str(2):
     query = input("Please, write a query: ")
     searchEngine_2(query)
-
+if n == str(3):
+    query = input("Please, write a query: ")
+    dataframe = searchEngine_1(query)
+    searchEngine_3(dataframe)
+    result=searchEngine_3(df)
+    print(result)
