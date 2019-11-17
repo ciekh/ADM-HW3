@@ -176,6 +176,6 @@ if n == str(2):
 if n == str(3):
     query = input("Please, write a query: ")
     dataframe = searchEngine_1(query)
-    searchEngine_3(dataframe)
+    df=searchEngine_3(dataframe)
     result=searchEngine_3(df)
     print(result)
