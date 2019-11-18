@@ -2,7 +2,7 @@
 from bs4 import BeautifulSoup
 import csv
 #for loop to crawl all the html file that we downloaded before
-for i in range(10):
+for i in range(29992):
     with open(r'C:\Users\shekoufeh\movies3\article_'+str(i)+'.html' ,encoding ='utf8') as f:
         html = f.read()
     soup = BeautifulSoup(html,'html.parser')
