@@ -86,9 +86,9 @@ for i in range(29992):
     #writer
     a = [output_rowc0.index(i) for i in output_rowc0 if "writ" in i.lower()]
     if len(a)>0:
-        dict['writer']=output_rowc1[a[0]].replace("\n","").strip()
+        dict['written']=output_rowc1[a[0]].replace("\n","").strip()
     else:
-        dict['writer']="NA"
+        dict['written']="NA"
     
     #starring
     a = [output_rowc0.index(i) for i in output_rowc0 if "star" in i.lower()]
@@ -114,9 +114,9 @@ for i in range(29992):
     #running time
     a = [output_rowc0.index(i) for i in output_rowc0 if "run" in i.lower()]
     if len(a)>0:
-        dict['running time']=output_rowc1[a[0]].replace("\n","").strip()
+        dict['runtime']=output_rowc1[a[0]].replace("\n","").strip()
     else:
-        dict['running time']="NA"
+        dict['runtime']="NA"
     
     #country
     a = [output_rowc0.index(i) for i in output_rowc0 if "country" in i.lower()]
@@ -142,7 +142,7 @@ for i in range(29992):
 #create tsv files
         
     with open('article_'+str(i)+'tsv','w',encoding='utf8') as f:
-        fieldnames = ['title','intro','plot','film_name','director', 'producer', 'writer', 'starring', 'music', 'release date', 'running time', 'country', 'language', 'budget']
+        fieldnames = ['title','intro','plot','film_name','director', 'producer', 'written', 'starring', 'music', 'release date', 'runtime', 'country', 'language', 'budget']
         writer = csv.DictWriter(f, fieldnames=fieldnames,dialect="excel-tab")
         writer.writeheader()
         writer.writerow(dict)
